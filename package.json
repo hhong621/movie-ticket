@@ -2,7 +2,7 @@
   "name": "movie-ticket",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://hhong821.github.io/movie-ticket/",
+  "homepage": "https://hhong621.github.io/movie-ticket/",
   "type": "module",
   "scripts": {
     "dev": "vite",
