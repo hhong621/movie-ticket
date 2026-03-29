@@ -6,7 +6,6 @@ import './App.css'
 function App() {
   const showtime = {
     movieImg: dunePoster,
-    movieImgUrl: '/movie-ticket/src/assets/dune-part-two-poster.jpg',
     movieTitle: 'Dune: Part Two',
     theaterName: 'Valley View 16',
     dayOfWeek: 'Fri',

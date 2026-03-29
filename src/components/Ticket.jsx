@@ -52,7 +52,6 @@ export default function Ticket({ showtime }) {
 
     const {
         movieImg = '',
-        movieImgUrl = '',
         movieTitle = '',
         theaterName = '',
         dayOfWeek = '',
@@ -77,7 +76,7 @@ export default function Ticket({ showtime }) {
                 <HalftoneCmyk
                     width={320}
                     height={480}
-                    image={movieImgUrl}
+                    image={movieImg}
                     colorBack="#fbfaf4"
                     colorC="#00b3ff"
                     colorM="#fc4f9d"
