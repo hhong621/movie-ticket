@@ -108,7 +108,7 @@ export default function Ticket({ showtime }) {
                 </div>
                 <div className='ticket-content'>
                     <div className='details-header'>
-                        <label>{theaterName}</label>
+                        <label className='theater-name'>{theaterName}</label>
                         <h2>{movieTitle}</h2>
                     </div>
                     

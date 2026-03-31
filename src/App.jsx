@@ -7,7 +7,7 @@ function App() {
   const showtime = {
     movieImg: dunePoster,
     movieTitle: 'Dune: Part Two',
-    theaterName: 'Valley View 16',
+    theaterName: 'Vista Theatre',
     dayOfWeek: 'Fri',
     date: 'Mar 1, 2024',
     time: '10:00 PM',
