@@ -107,6 +107,18 @@ export default function Ticket({ showtime }) {
                     <label className='qr-string'>{qrCodeStr}</label>
                 </div>
                 <div className='ticket-content'>
+                    <div className='shape-layer holo'></div>
+                    <div 
+                        className='color-layer holo'
+                        style={{
+                            background: '#CB662E',
+                            background: 'linear-gradient(45deg, rgba(203, 102, 46, 1) 0%, rgba(250, 171, 52, 1) 100%)'
+                        }}
+                    >
+                    </div>
+                    <div className='mesh-layer holo'></div>
+                    <div className='knockout-layer holo'></div>
+
                     <div className='details-header'>
                         <label className='theater-name'>{theaterName}</label>
                         <h2>{movieTitle}</h2>
