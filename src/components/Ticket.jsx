@@ -5,6 +5,7 @@ export default function Ticket({ showtime }) {
     let bounds;
     const inputRef = useRef();
     const glowRef = useRef();
+    const knockoutRef = useRef();
     const [isFlipped, setIsFlipped] = useState(false);
 
     const rotateToMouse = (e) => {
@@ -17,8 +18,8 @@ export default function Ticket({ showtime }) {
             x: leftX - bounds.width / 2,
             y: topY - bounds.height / 2,
         };
-        const rotateX = (center.y / bounds.height) * -16;
-        const rotateTiltY = (center.x / bounds.width) * 16;
+        const rotateX = (center.y / bounds.height) * -20;
+        const rotateTiltY = (center.x / bounds.width) * 20;
 
         inputRef.current.style.setProperty('--ticket-rotate-x', `${rotateX}deg`);
         inputRef.current.style.setProperty('--ticket-tilt-y', `${rotateTiltY}deg`);
@@ -37,6 +38,19 @@ export default function Ticket({ showtime }) {
             #0000000f
         )
         `;
+
+        const knockoutX = center.x * 2 + bounds.width / 2;
+        const knockoutY = center.y * 2 + bounds.height / 2;
+
+        knockoutRef.current.style.backgroundImage = `
+        radial-gradient(
+            circle at
+            ${knockoutX}px
+            ${knockoutY}px,
+            #ffffff00,
+            #ffffffff
+        )
+        `
     };
 
     const removeListener = () => {
@@ -44,6 +58,7 @@ export default function Ticket({ showtime }) {
         inputRef.current.style.setProperty('--ticket-tilt-y', '0deg');
         inputRef.current.style.setProperty('--ticket-scale', '1');
         glowRef.current.style.backgroundImage = '';
+        knockoutRef.current.style.backgroundImage = '';
     };
 
     const toggleFlip = () => {
@@ -117,7 +132,11 @@ export default function Ticket({ showtime }) {
                     >
                     </div>
                     <div className='mesh-layer holo'></div>
-                    <div className='knockout-layer holo'></div>
+                    <div className='holo'>
+                        <div className='knockout-layer'>
+                            <div ref={knockoutRef} className='knockout'/>
+                        </div>
+                    </div>
 
                     <div className='details-header'>
                         <label className='theater-name'>{theaterName}</label>
