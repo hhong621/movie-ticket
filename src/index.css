@@ -86,11 +86,11 @@ body {
   -webkit-backface-visibility: hidden; /* Safari */
   backface-visibility: hidden; /* Hide the back side during flip */
   font-family: 'DepartureMono', monospace;
+  background-color: #fff;
 }
 
 .ticket-back {
   transform: rotateY(180deg); /* Position the back face initially */
-  background-color: #fff;
 }
 
 .movie-poster {
