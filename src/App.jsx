@@ -9,7 +9,7 @@ import kikisPoster from './assets/kikis-delivery-service-poster.jpg'
 import moneyballPoster from './assets/moneyball-poster.jpg'
 import moonlightPoster from './assets/moonlight-poster.jpg'
 import pastLivesPoster from './assets/past-lives-poster.jpg'
-import twilightPoster from './assets/twilight-poster.jpg'
+import portraitPoster from './assets/portrait-poster.jpg'
 import './App.css'
 
 const GRID_SLOTS = 9
@@ -39,7 +39,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'APCMWOS',
       color1: '#199AD3',
-      color2: '#F7459B',
+      color2: '#FD341A',
     },
     {
       movieImg: creedPoster,
@@ -66,7 +66,7 @@ function App() {
       seatNumber: 'I8',
       qrCodeImg: duneQR,
       qrCodeStr: 'QNVOSWP',
-      color1: '#571D1C',
+      color1: '#ffffff',
       color2: '#CB2032',
     },
     {
@@ -81,7 +81,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'WRXBNRL',
       color1: '#CB662E',
-      color2: '#FAAB34',
+      color2: '#4D2324',
     },
     {
       movieImg: kikisPoster,
@@ -95,7 +95,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'RMYXSAF',
       color1: '#77BB88',
-      color2: '#447FBB',
+      color2: '#052649',
     },
     {
       movieImg: moneyballPoster,
@@ -108,8 +108,8 @@ function App() {
       seatNumber: 'G12',
       qrCodeImg: duneQR,
       qrCodeStr: 'CWMXPOV',
-      color1: '#485D70',
-      color2: '#8BA355',
+      color1: '#8BA355',
+      color2: '#08100F',
     },
     {
       movieImg: moonlightPoster,
@@ -123,7 +123,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'TBXFPWA',
       color1: '#00FFF5',
-      color2: '#A0CFFB',
+      color2: '#3B1F50',
     },
     {
       movieImg: pastLivesPoster,
@@ -137,21 +137,21 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'APMCNWO',
       color1: '#BDB3A9',
-      color2: '#526174',
+      color2: '#11151E',
     },
     {
-      movieImg: twilightPoster,
-      movieTitle: 'Twilight',
+      movieImg: portraitPoster,
+      movieTitle: 'Portrait of a Lady on Fire',
       theaterName: 'Vista Theatre',
       dayOfWeek: 'Fri',
-      date: 'Nov 21, 2008',
+      date: 'Feb 14, 2020',
       time: '10:00 PM',
       audNumber: '1',
       seatNumber: 'C10',
       qrCodeImg: duneQR,
       qrCodeStr: 'VOPKLSF',
-      color1: '#84AAAB',
-      color2: '#000000',
+      color1: '#DB9837',
+      color2: '#130E0B',
     }
   ]
 
