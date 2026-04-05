@@ -1,3 +1,101 @@
+.ticket-app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  perspective: 1500px;
+}
+
+.ticket-grid {
+  --ticket-grid-gap: clamp(0.375rem, 2vw, 0.75rem);
+  --tg-pad-inline: calc(
+    max(0.5rem, env(safe-area-inset-left)) + max(0.5rem, env(safe-area-inset-right))
+  );
+  --tg-pad-block: calc(
+    max(0.5rem, env(safe-area-inset-top)) + max(0.5rem, env(safe-area-inset-bottom))
+  );
+  --w-available: calc(100vw - var(--tg-pad-inline) - 2 * var(--ticket-grid-gap));
+  --h-available: calc(100dvh - var(--tg-pad-block) - 2 * var(--ticket-grid-gap));
+  --ticket-grid-scale: min(
+    1,
+    min(
+      calc(var(--w-available) / 960px),
+      calc(var(--h-available) / 1440px)
+    )
+  );
+
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  grid-template-rows: repeat(3, auto);
+  gap: var(--ticket-grid-gap);
+  justify-content: center;
+  align-content: center;
+  padding: max(0.5rem, env(safe-area-inset-top))
+    max(0.5rem, env(safe-area-inset-right))
+    max(0.5rem, env(safe-area-inset-bottom))
+    max(0.5rem, env(safe-area-inset-left));
+  min-height: 0;
+  width: 100%;
+}
+
+.ticket-grid-cell {
+  width: calc(320px * var(--ticket-grid-scale));
+  height: calc(480px * var(--ticket-grid-scale));
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ticket-grid-cell:focus-visible {
+  outline: 2px solid #231f20;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ticket-grid-scale {
+  display: block;
+  width: 320px;
+  height: 480px;
+  transform-origin: center center;
+  transform: scale(var(--ticket-grid-scale));
+}
+
+.ticket-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.75rem, env(safe-area-inset-top))
+    max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
+    max(0.75rem, env(safe-area-inset-left));
+  perspective: 1500px;
+}
+
+.ticket-modal-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ticket-modal-content {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

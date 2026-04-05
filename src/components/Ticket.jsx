@@ -1,14 +1,26 @@
 import React, { useRef, useState } from 'react';
 import { HalftoneCmyk } from '@paper-design/shaders-react';
 
-export default function Ticket({ showtime }) {
+function canUsePointerHover() {
+    return (
+        typeof window !== 'undefined' &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    );
+}
+
+export default function Ticket({
+    showtime,
+    initialFlipped = false,
+    interactive = true,
+}) {
     let bounds;
     const inputRef = useRef();
     const glowRef = useRef();
     const knockoutRef = useRef();
-    const [isFlipped, setIsFlipped] = useState(false);
+    const [isFlipped, setIsFlipped] = useState(initialFlipped);
 
     const rotateToMouse = (e) => {
+        if (!canUsePointerHover()) return;
         bounds = inputRef.current.getBoundingClientRect();
         const mouseX = e.clientX;
         const mouseY = e.clientY;
@@ -48,12 +60,13 @@ export default function Ticket({ showtime }) {
             ${knockoutX}px
             ${knockoutY}px,
             #ffffff00,
-            #ffffffff
+            #ffffffee
         )
         `
     };
 
     const removeListener = () => {
+        if (!canUsePointerHover()) return;
         inputRef.current.style.setProperty('--ticket-rotate-x', '0deg');
         inputRef.current.style.setProperty('--ticket-tilt-y', '0deg');
         inputRef.current.style.setProperty('--ticket-scale', '1');
@@ -76,15 +89,23 @@ export default function Ticket({ showtime }) {
         seatNumber = '',
         qrCodeImg = '',
         qrCodeStr = '',
+        color1 = '',
+        color2 = '',
     } = showtime || {};
+
+    const pointerHandlers = interactive
+        ? {
+              onMouseLeave: removeListener,
+              onMouseMove: rotateToMouse,
+              onClick: toggleFlip,
+          }
+        : {};
 
     return (
         <div
             ref={inputRef}
             className={`ticket ${isFlipped ? 'flipped' : ''}`}
-            onMouseLeave={removeListener}
-            onMouseMove={rotateToMouse}
-            onClick={toggleFlip}
+            {...pointerHandlers}
         >
             <div ref={glowRef} className="glow" />
             <div className='ticket-face ticket-front'>
@@ -126,8 +147,7 @@ export default function Ticket({ showtime }) {
                     <div 
                         className='color-layer holo'
                         style={{
-                            background: '#CB662E',
-                            background: 'linear-gradient(45deg, rgba(203, 102, 46, 1) 0%, rgba(250, 171, 52, 1) 100%)'
+                            background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)`
                         }}
                     >
                     </div>
