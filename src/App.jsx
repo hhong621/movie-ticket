@@ -67,7 +67,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'QNVOSWP',
       color1: '#ffffff',
-      color2: '#CB2032',
+      color2: '#F28F3E',
     },
     {
       movieImg: dunePoster,
@@ -81,7 +81,7 @@ function App() {
       qrCodeImg: duneQR,
       qrCodeStr: 'WRXBNRL',
       color1: '#CB662E',
-      color2: '#4D2324',
+      color2: '#2A111F',
     },
     {
       movieImg: kikisPoster,
@@ -94,8 +94,8 @@ function App() {
       seatNumber: 'D6',
       qrCodeImg: duneQR,
       qrCodeStr: 'RMYXSAF',
-      color1: '#77BB88',
-      color2: '#052649',
+      color1: '#1F3E68',
+      color2: '#007E4B',
     },
     {
       movieImg: moneyballPoster,
@@ -108,8 +108,8 @@ function App() {
       seatNumber: 'G12',
       qrCodeImg: duneQR,
       qrCodeStr: 'CWMXPOV',
-      color1: '#8BA355',
-      color2: '#08100F',
+      color1: '#9e750e',
+      color2: '#003831',
     },
     {
       movieImg: moonlightPoster,
