@@ -1,11 +1,22 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { HalftoneCmyk } from '@paper-design/shaders-react';
+import {
+    applyTicketHoloCssVars,
+    buildLayerABBackground,
+    buildLayerCBackground,
+} from '../holoSettings';
+import { mergeShowtimeIntoSettings } from '../ticketHoloSettings';
+import './TicketHolo.css';
 
 function canUsePointerHover() {
     return (
         typeof window !== 'undefined' &&
         window.matchMedia('(hover: hover) and (pointer: fine)').matches
     );
+}
+
+function blendMode(mode) {
+    return mode === 'normal' ? 'normal' : mode;
 }
 
 export default function Ticket({
@@ -16,8 +27,71 @@ export default function Ticket({
     let bounds;
     const inputRef = useRef();
     const glowRef = useRef();
-    const knockoutRef = useRef();
+    const holoRef = useRef(null);
     const [isFlipped, setIsFlipped] = useState(initialFlipped);
+    const [holoPointer, setHoloPointer] = useState({ mx: 0.5, my: 0.5 });
+    const [holoHovered, setHoloHovered] = useState(false);
+
+    const holoSettings = useMemo(
+        () => mergeShowtimeIntoSettings(showtime),
+        [showtime],
+    );
+
+    const holoMove = useCallback(
+        (e) => {
+            if (!holoSettings.global.pointerTracking) return;
+            const el = holoRef.current;
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            const mx = (e.clientX - r.left) / r.width;
+            const my = (e.clientY - r.top) / r.height;
+            setHoloPointer({
+                mx: Math.min(1, Math.max(0, mx)),
+                my: Math.min(1, Math.max(0, my)),
+            });
+        },
+        [holoSettings.global.pointerTracking],
+    );
+
+    const holoEnter = useCallback(() => setHoloHovered(true), []);
+
+    const holoLeave = useCallback(() => {
+        setHoloHovered(false);
+        setHoloPointer({ mx: 0.5, my: 0.5 });
+    }, []);
+
+    const holoWrapStyle = useMemo(
+        () => applyTicketHoloCssVars(holoSettings.global, holoPointer),
+        [holoSettings.global, holoPointer],
+    );
+
+    const bgA = useMemo(
+        () =>
+            buildLayerABBackground(
+                holoPointer.mx,
+                holoPointer.my,
+                holoSettings.layerA,
+            ),
+        [holoPointer.mx, holoPointer.my, holoSettings.layerA],
+    );
+    const bgB = useMemo(
+        () =>
+            buildLayerABBackground(
+                holoPointer.mx,
+                holoPointer.my,
+                holoSettings.layerB,
+            ),
+        [holoPointer.mx, holoPointer.my, holoSettings.layerB],
+    );
+    const bgC = useMemo(
+        () =>
+            buildLayerCBackground(
+                holoPointer.mx,
+                holoPointer.my,
+                holoSettings.layerC,
+            ),
+        [holoPointer.mx, holoPointer.my, holoSettings.layerC],
+    );
 
     const rotateToMouse = (e) => {
         if (!canUsePointerHover()) return;
@@ -50,19 +124,6 @@ export default function Ticket({
             #0000000f
         )
         `;
-
-        const knockoutX = center.x * 2 + bounds.width / 2;
-        const knockoutY = center.y * 2 + bounds.height / 2;
-
-        knockoutRef.current.style.backgroundImage = `
-        radial-gradient(
-            circle at
-            ${knockoutX}px
-            ${knockoutY}px,
-            #ffffff00,
-            #ffffffee
-        )
-        `
     };
 
     const removeListener = () => {
@@ -71,7 +132,6 @@ export default function Ticket({
         inputRef.current.style.setProperty('--ticket-tilt-y', '0deg');
         inputRef.current.style.setProperty('--ticket-scale', '1');
         glowRef.current.style.backgroundImage = '';
-        knockoutRef.current.style.backgroundImage = '';
     };
 
     const toggleFlip = () => {
@@ -89,23 +149,26 @@ export default function Ticket({
         seatNumber = '',
         qrCodeImg = '',
         qrCodeStr = '',
-        color1 = '',
-        color2 = '',
     } = showtime || {};
 
-    const pointerHandlers = interactive
-        ? {
-              onMouseLeave: removeListener,
-              onMouseMove: rotateToMouse,
-              onClick: toggleFlip,
-          }
-        : {};
+    const handleTicketMouseMove = (e) => {
+        if (interactive) rotateToMouse(e);
+        holoMove(e);
+    };
+
+    const handleTicketMouseLeave = () => {
+        if (interactive) removeListener();
+        holoLeave();
+    };
 
     return (
         <div
             ref={inputRef}
             className={`ticket ${isFlipped ? 'flipped' : ''}`}
-            {...pointerHandlers}
+            onMouseEnter={holoEnter}
+            onMouseLeave={handleTicketMouseLeave}
+            onMouseMove={handleTicketMouseMove}
+            {...(interactive ? { onClick: toggleFlip } : {})}
         >
             <div ref={glowRef} className="glow" />
             <div className='ticket-face ticket-front'>
@@ -143,47 +206,89 @@ export default function Ticket({
                     <label className='qr-string'>{qrCodeStr}</label>
                 </div>
                 <div className='ticket-content'>
-                    <div className='shape-layer holo'></div>
-                    <div 
-                        className='color-layer holo'
-                        style={{
-                            background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)`
-                        }}
+                    <div
+                        ref={holoRef}
+                        className='ticket-holo'
+                        style={holoWrapStyle}
                     >
-                    </div>
-                    <div className='mesh-layer holo'></div>
-                    <div className='holo'>
-                        <div className='knockout-layer'>
-                            <div ref={knockoutRef} className='knockout'/>
-                        </div>
+                        <div className='ticket-holo__base' aria-hidden />
+                        {holoSettings.layerA.enabled ? (
+                            <div
+                                className={`ticket-holo__layer ticket-holo__layer--a${holoSettings.layerA.animateHue ? ' ticket-holo__layer--hue' : ''}`}
+                                style={{
+                                    '--holo-hue-dur': `${holoSettings.layerA.animationDurationMs}ms`,
+                                    opacity: holoHovered
+                                        ? holoSettings.layerA.opacity
+                                        : 0,
+                                    backgroundImage: bgA,
+                                    mixBlendMode: blendMode(
+                                        holoSettings.layerA.mixBlendMode,
+                                    ),
+                                }}
+                                aria-hidden
+                            />
+                        ) : null}
+                        {holoSettings.layerB.enabled ? (
+                            <div
+                                className={`ticket-holo__layer ticket-holo__layer--b${holoSettings.layerB.animateHue ? ' ticket-holo__layer--hue' : ''}`}
+                                style={{
+                                    '--holo-hue-dur': `${holoSettings.layerB.animationDurationMs}ms`,
+                                    opacity: holoHovered
+                                        ? holoSettings.layerB.opacity
+                                        : 0,
+                                    backgroundImage: bgB,
+                                    mixBlendMode: blendMode(
+                                        holoSettings.layerB.mixBlendMode,
+                                    ),
+                                }}
+                                aria-hidden
+                            />
+                        ) : null}
+                        {holoSettings.layerC.enabled ? (
+                            <div
+                                className='ticket-holo__layer ticket-holo__layer--c'
+                                style={{
+                                    opacity: holoHovered
+                                        ? holoSettings.layerC.opacity
+                                        : 0,
+                                    backgroundImage: bgC,
+                                    mixBlendMode: blendMode(
+                                        holoSettings.layerC.mixBlendMode,
+                                    ),
+                                }}
+                                aria-hidden
+                            />
+                        ) : null}
                     </div>
 
-                    <div className='details-header'>
-                        <label className='theater-name'>{theaterName}</label>
-                        <h2>{movieTitle}</h2>
-                    </div>
-                    
-                    <div className='details-row'>
-                        <div className='details-item'>
-                            <label>DATE</label>
-                            <p>{dayOfWeek}<br></br>{date}</p>
+                    <div className='ticket-content__foreground'>
+                        <div className='details-header'>
+                            <label className='theater-name'>{theaterName}</label>
+                            <h2>{movieTitle}</h2>
                         </div>
 
-                        <div className='details-item'>
-                            <label>TIME</label>
-                            <p>{time}</p>
-                        </div>
-                    </div>
+                        <div className='details-row'>
+                            <div className='details-item'>
+                                <label>DATE</label>
+                                <p>{dayOfWeek}<br></br>{date}</p>
+                            </div>
 
-                    <div className='details-row'>
-                        <div className='details-item'>
-                            <label>AUDITORIUM</label>
-                            <h3>{audNumber}</h3>
+                            <div className='details-item'>
+                                <label>TIME</label>
+                                <p>{time}</p>
+                            </div>
                         </div>
 
-                        <div className='details-item'>
-                            <label>SEAT</label>
-                            <h3>{seatNumber}</h3>
+                        <div className='details-row'>
+                            <div className='details-item'>
+                                <label>AUDITORIUM</label>
+                                <h3>{audNumber}</h3>
+                            </div>
+
+                            <div className='details-item'>
+                                <label>SEAT</label>
+                                <h3>{seatNumber}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>

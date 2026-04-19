@@ -1,0 +1,92 @@
+.ticket-holo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #fff;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-holo__layer {
+    transition: none !important;
+  }
+}
+
+.ticket-holo__base {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.ticket-holo__layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  --holo-radial-spot: radial-gradient(
+    circle var(--holo-effect-r, 130px) at calc(var(--holo-mx, 0.5) * 100%)
+      calc(var(--holo-my, 0.5) * 100%),
+    #000 0%,
+    #000 var(--holo-effect-inner-pct, 58%),
+    transparent 100%
+  );
+  --holo-checker-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='8' height='8' fill='%23fff'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23fff'/%3E%3C/svg%3E");
+  -webkit-mask-image: var(--holo-radial-spot), var(--holo-checker-tile);
+  -webkit-mask-size:
+    100% 100%,
+    var(--holo-checker-size, 16px) var(--holo-checker-size, 16px);
+  -webkit-mask-repeat: no-repeat, repeat;
+  -webkit-mask-position: 0 0, 0 0;
+  -webkit-mask-composite: source-in;
+  mask-image: var(--holo-radial-spot), var(--holo-checker-tile);
+  mask-size:
+    100% 100%,
+    var(--holo-checker-size, 16px) var(--holo-checker-size, 16px);
+  mask-repeat: no-repeat, repeat;
+  mask-position: 0 0, 0 0;
+  mask-composite: intersect;
+  mask-mode: alpha;
+  transition: opacity var(--holo-transition-ms, 280ms) ease;
+}
+
+.ticket-holo__layer--b {
+  z-index: 2;
+}
+
+.ticket-holo__layer--c {
+  z-index: 3;
+}
+
+.ticket-holo__layer--hue {
+  animation: ticket-holo-hue-rotate var(--holo-hue-dur, 8s) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-holo__layer--hue {
+    animation: none;
+  }
+}
+
+@keyframes ticket-holo-hue-rotate {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+.ticket-content__foreground {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
