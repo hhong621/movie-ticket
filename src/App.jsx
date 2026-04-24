@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Ticket from './components/Ticket'
 import cocoPoster from './assets/coco-poster.jpg'
 import creedPoster from './assets/creed-poster.jpg'
@@ -12,10 +12,42 @@ import pastLivesPoster from './assets/past-lives-poster.jpg'
 import portraitPoster from './assets/portrait-poster.jpg'
 import './App.css'
 
-const GRID_SLOTS = 9
+const TICKET_COUNT = 9
+const DRAG_THRESHOLD_PX = 5
+/** Fraction of viewport (usable x/y range) where tickets spawn: middle 50%. */
+const INITIAL_BAND = 0.5
+const INITIAL_BAND_START = (1 - INITIAL_BAND) / 2
+
+const INITIAL_LAYOUT = [
+  { xPct: 0.1, yPct: 0.12, rotation: -7.5 },
+  { xPct: 0.38, yPct: 0.05, rotation: 4.2 },
+  { xPct: 0.68, yPct: 0.15, rotation: -3.8 },
+  { xPct: 0.04, yPct: 0.4, rotation: 6.1 },
+  { xPct: 0.44, yPct: 0.38, rotation: -5.4 },
+  { xPct: 0.7, yPct: 0.42, rotation: 3.6 },
+  { xPct: 0.12, yPct: 0.68, rotation: -4.1 },
+  { xPct: 0.36, yPct: 0.72, rotation: 7.2 },
+  { xPct: 0.64, yPct: 0.65, rotation: -6.3 },
+]
+
+function parseCanvasScaleFromComputed(canvas) {
+  const raw = getComputedStyle(canvas)
+    .getPropertyValue('--ticket-canvas-scale')
+    .trim()
+  const n = parseFloat(raw)
+  return Number.isFinite(n) && n > 0 ? n : 0.4
+}
 
 function App() {
   const [selectedIndex, setSelectedIndex] = useState(null)
+  const [positions, setPositions] = useState(null)
+  const [draggingIndex, setDraggingIndex] = useState(null)
+  const [pressedIndex, setPressedIndex] = useState(null)
+  const [hoveredIndex, setHoveredIndex] = useState(null)
+
+  const canvasRef = useRef(null)
+  const layoutSizeRef = useRef(null)
+  const dragStateRef = useRef(null)
 
   useEffect(() => {
     if (selectedIndex === null) return
@@ -25,6 +57,143 @@ function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedIndex])
+
+  const measureCanvas = (canvas) => {
+    const scale = parseCanvasScaleFromComputed(canvas)
+    const itemW = 320 * scale
+    const itemH = 480 * scale
+    return {
+      scale,
+      itemW,
+      itemH,
+      cw: canvas.clientWidth,
+      ch: canvas.clientHeight,
+    }
+  }
+
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const updateLayout = () => {
+      const next = measureCanvas(canvas)
+      const old = layoutSizeRef.current
+      layoutSizeRef.current = next
+
+      setPositions((prev) => {
+        if (!prev) {
+          const ux = Math.max(0, next.cw - next.itemW)
+          const uy = Math.max(0, next.ch - next.itemH)
+          const bx = INITIAL_BAND_START * ux
+          const by = INITIAL_BAND_START * uy
+          const bw = INITIAL_BAND * ux
+          const bh = INITIAL_BAND * uy
+          return INITIAL_LAYOUT.map((L, i) => ({
+            x: bx + L.xPct * bw,
+            y: by + L.yPct * bh,
+            rotation: L.rotation,
+            z: i,
+          }))
+        }
+        if (!old) return prev
+        const denomW = old.cw - old.itemW
+        const denomH = old.ch - old.itemH
+        const wRatio = denomW > 0.5 ? (next.cw - next.itemW) / denomW : 1
+        const hRatio = denomH > 0.5 ? (next.ch - next.itemH) / denomH : 1
+        return prev.map((p) => ({
+          ...p,
+          x: p.x * wRatio,
+          y: p.y * hRatio,
+        }))
+      })
+    }
+
+    const ro = new ResizeObserver(() => {
+      updateLayout()
+    })
+    ro.observe(canvas)
+    updateLayout()
+
+    return () => {
+      ro.disconnect()
+    }
+  }, [])
+
+  const bumpZ = (index) => {
+    setPositions((prev) => {
+      if (!prev) return prev
+      const nextZ = Math.max(0, ...prev.map((p) => p.z)) + 1
+      const next = prev.slice()
+      next[index] = { ...next[index], z: nextZ }
+      return next
+    })
+  }
+
+  const handlePointerDown = (e, i) => {
+    if (e.button !== 0) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    if (!positions) return
+    setPressedIndex(i)
+    const p = positions[i]
+    dragStateRef.current = {
+      index: i,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: p.x,
+      origY: p.y,
+      moved: false,
+    }
+  }
+
+  const handlePointerMove = (e) => {
+    const d = dragStateRef.current
+    if (!d) return
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (!d.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
+      d.moved = true
+      setDraggingIndex(d.index)
+      bumpZ(d.index)
+    }
+    if (d.moved) {
+      setPositions((prev) => {
+        if (!prev) return prev
+        const next = prev.slice()
+        const cur = next[d.index]
+        next[d.index] = {
+          ...cur,
+          x: d.origX + dx,
+          y: d.origY + dy,
+        }
+        return next
+      })
+    }
+  }
+
+  const finishPointer = (e, i) => {
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
+    } catch {
+      // ignore
+    }
+    const d = dragStateRef.current
+    dragStateRef.current = null
+    setPressedIndex(null)
+    setDraggingIndex(null)
+    if (d && !d.moved) {
+      setSelectedIndex(i)
+    }
+  }
+
+  const handlePointerUp = (e, i) => {
+    finishPointer(e, i)
+  }
+
+  const handlePointerCancel = (e, i) => {
+    finishPointer(e, i)
+  }
 
   const showtime = [
     {
@@ -161,29 +330,53 @@ function App() {
       color1: '#482B1B',
       color2: '#ffffff',
       color3: '#BE6A22',
-    }
+    },
   ]
 
   return (
     <div className="ticket-app">
-      <div className="ticket-grid">
-        {Array.from({ length: GRID_SLOTS }, (_, i) => (
-          <button
-            key={i}
-            type="button"
-            className="ticket-grid-cell"
-            aria-label={`Open ticket ${i + 1}`}
-            onClick={() => setSelectedIndex(i)}
-          >
-            <span className="ticket-grid-scale">
-              <Ticket
-                showtime={showtime[i]}
-                initialFlipped
-                interactive={false}
-              />
-            </span>
-          </button>
-        ))}
+      <div className="ticket-canvas" ref={canvasRef}>
+        {Array.from({ length: TICKET_COUNT }, (_, i) => {
+          const p = positions?.[i]
+          if (!p) {
+            return null
+          }
+          const rotationToNormal =
+            hoveredIndex === i || pressedIndex === i || draggingIndex === i
+          const rDeg = rotationToNormal ? 0 : p.rotation
+          return (
+            <button
+              key={i}
+              type="button"
+              className={`ticket-canvas-item${
+                pressedIndex === i ? ' is-pressed' : ''
+              }${draggingIndex === i ? ' is-dragging' : ''}`}
+              aria-label={`Open ticket ${i + 1}`}
+              style={{
+                left: p.x,
+                top: p.y,
+                zIndex: p.z,
+                ['--r']: `${rDeg}deg`,
+              }}
+              onPointerEnter={() => setHoveredIndex(i)}
+              onPointerLeave={() =>
+                setHoveredIndex((h) => (h === i ? null : h))
+              }
+              onPointerDown={(e) => handlePointerDown(e, i)}
+              onPointerMove={handlePointerMove}
+              onPointerUp={(e) => handlePointerUp(e, i)}
+              onPointerCancel={(e) => handlePointerCancel(e, i)}
+            >
+              <span className="ticket-canvas-scale">
+                <Ticket
+                  showtime={showtime[i]}
+                  initialFlipped
+                  interactive={false}
+                />
+              </span>
+            </button>
+          )
+        })}
       </div>
 
       {selectedIndex !== null ? (

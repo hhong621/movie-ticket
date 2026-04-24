@@ -151,21 +151,27 @@ export default function Ticket({
         qrCodeStr = '',
     } = showtime || {};
 
-    const handleTicketMouseMove = (e) => {
-        if (interactive) rotateToMouse(e);
-        holoMove(e);
-    };
+    const handleTicketMouseEnter = interactive ? holoEnter : undefined;
 
-    const handleTicketMouseLeave = () => {
-        if (interactive) removeListener();
-        holoLeave();
-    };
+    const handleTicketMouseMove = interactive
+        ? (e) => {
+            rotateToMouse(e);
+            holoMove(e);
+        }
+        : undefined;
+
+    const handleTicketMouseLeave = interactive
+        ? () => {
+            removeListener();
+            holoLeave();
+        }
+        : undefined;
 
     return (
         <div
             ref={inputRef}
             className={`ticket ${isFlipped ? 'flipped' : ''}`}
-            onMouseEnter={holoEnter}
+            onMouseEnter={handleTicketMouseEnter}
             onMouseLeave={handleTicketMouseLeave}
             onMouseMove={handleTicketMouseMove}
             {...(interactive ? { onClick: toggleFlip } : {})}
