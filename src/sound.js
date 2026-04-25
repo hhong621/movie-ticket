@@ -11,7 +11,7 @@ export class Sound {
 
     switch (this.soundType) {
       case 'click': {
-        this.oscillator.type = 'triangle'
+        this.oscillator.type = 'sine'
         this.biquadFilter = this.context.createBiquadFilter()
         this.biquadFilter.type = 'bandpass'
         this.biquadFilter.frequency.value = 10000

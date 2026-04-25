@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Ticket from './components/Ticket'
 import cocoPoster from './assets/coco-poster.jpg'
 import creedPoster from './assets/creed-poster.jpg'
@@ -11,7 +11,7 @@ import moonlightPoster from './assets/moonlight-poster.jpg'
 import pastLivesPoster from './assets/past-lives-poster.jpg'
 import portraitPoster from './assets/portrait-poster.jpg'
 import './App.css'
-import { playItemClick, playPop, playUnmutePop } from './sound'
+import { playItemClick, playPaperFlip, playPop, playUnmutePop } from './sound'
 
 const TICKET_COUNT = 9
 const DRAG_THRESHOLD_PX = 5
@@ -60,14 +60,19 @@ function App() {
   const layoutSizeRef = useRef(null)
   const dragStateRef = useRef(null)
 
+  const closeModal = useCallback(() => {
+    playPaperFlip(soundMuted)
+    setSelectedIndex(null)
+  }, [soundMuted])
+
   useEffect(() => {
     if (selectedIndex === null) return
     const onKeyDown = (e) => {
-      if (e.key === 'Escape') setSelectedIndex(null)
+      if (e.key === 'Escape') closeModal()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedIndex])
+  }, [selectedIndex, closeModal])
 
   useEffect(() => {
     if (isDark) {
@@ -452,7 +457,7 @@ function App() {
         <div className="ticket-modal" role="dialog" aria-modal="true">
           <div
             className="ticket-modal-scrim"
-            onClick={() => setSelectedIndex(null)}
+            onClick={closeModal}
             aria-hidden="true"
           />
           <div
