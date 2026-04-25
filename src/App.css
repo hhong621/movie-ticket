@@ -7,6 +7,46 @@
   perspective: 1500px;
 }
 
+.ticket-sound-toggle {
+  position: fixed;
+  z-index: 200;
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  color: #fbfaf4;
+  background: #231f20;
+  border: 1px solid rgba(251, 250, 244, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.ticket-sound-toggle__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.ticket-sound-toggle:hover {
+  background: #2d2826;
+}
+
+.ticket-sound-toggle:focus-visible {
+  outline: 2px solid #231f20;
+  outline-offset: 2px;
+}
+
 .ticket-canvas {
   --ticket-grid-gap: clamp(0.375rem, 2vw, 0.75rem);
   --tg-pad-inline: calc(
@@ -114,6 +154,14 @@
   z-index: 1;
   max-width: 100%;
   max-height: 100%;
+}
+
+/* Touch / no-hover: avoid stuck :hover shadow on modal ticket after tap */
+@media (hover: none) {
+  .ticket-modal .ticket:hover {
+    box-shadow: 0 1px 5px #00000099;
+    transition-duration: 500ms;
+  }
 }
 
 .counter {

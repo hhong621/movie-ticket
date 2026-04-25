@@ -6,6 +6,7 @@ import {
     buildLayerCBackground,
 } from '../holoSettings';
 import { mergeShowtimeIntoSettings } from '../ticketHoloSettings';
+import { playPaperFlip } from '../sound';
 import './TicketHolo.css';
 
 function canUsePointerHover() {
@@ -23,6 +24,7 @@ export default function Ticket({
     showtime,
     initialFlipped = false,
     interactive = true,
+    soundMuted = false,
 }) {
     let bounds;
     const inputRef = useRef();
@@ -135,6 +137,7 @@ export default function Ticket({
     };
 
     const toggleFlip = () => {
+        if (interactive) playPaperFlip(soundMuted);
         setIsFlipped((prev) => !prev);
     };
 
@@ -151,10 +154,15 @@ export default function Ticket({
         qrCodeStr = '',
     } = showtime || {};
 
-    const handleTicketMouseEnter = interactive ? holoEnter : undefined;
+    const handleTicketMouseEnter = interactive
+        ? () => {
+            if (canUsePointerHover()) holoEnter();
+        }
+        : undefined;
 
     const handleTicketMouseMove = interactive
         ? (e) => {
+            if (!canUsePointerHover()) return;
             rotateToMouse(e);
             holoMove(e);
         }
@@ -162,6 +170,7 @@ export default function Ticket({
 
     const handleTicketMouseLeave = interactive
         ? () => {
+            if (!canUsePointerHover()) return;
             removeListener();
             holoLeave();
         }

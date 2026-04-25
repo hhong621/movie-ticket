@@ -11,12 +11,21 @@ import moonlightPoster from './assets/moonlight-poster.jpg'
 import pastLivesPoster from './assets/past-lives-poster.jpg'
 import portraitPoster from './assets/portrait-poster.jpg'
 import './App.css'
+import { playItemClick, playUnmutePop } from './sound'
 
 const TICKET_COUNT = 9
 const DRAG_THRESHOLD_PX = 5
-/** Fraction of viewport (usable x/y range) where tickets spawn: middle 50%. */
-const INITIAL_BAND = 0.5
-const INITIAL_BAND_START = (1 - INITIAL_BAND) / 2
+/** Fraction of usable canvas (minus ticket size) where tickets spawn; wider on small screens. */
+const INITIAL_BAND_DESKTOP = 0.5
+const INITIAL_BAND_MOBILE = 0.88
+/** Viewport min edge (px) at or below this uses the mobile band. */
+const INITIAL_BAND_MOBILE_MAX_EDGE = 640
+
+function initialPlacementBand(cw, ch) {
+  return Math.min(cw, ch) <= INITIAL_BAND_MOBILE_MAX_EDGE
+    ? INITIAL_BAND_MOBILE
+    : INITIAL_BAND_DESKTOP
+}
 
 const INITIAL_LAYOUT = [
   { xPct: 0.1, yPct: 0.12, rotation: -7.5 },
@@ -44,6 +53,7 @@ function App() {
   const [draggingIndex, setDraggingIndex] = useState(null)
   const [pressedIndex, setPressedIndex] = useState(null)
   const [hoveredIndex, setHoveredIndex] = useState(null)
+  const [soundMuted, setSoundMuted] = useState(false)
 
   const canvasRef = useRef(null)
   const layoutSizeRef = useRef(null)
@@ -84,10 +94,12 @@ function App() {
         if (!prev) {
           const ux = Math.max(0, next.cw - next.itemW)
           const uy = Math.max(0, next.ch - next.itemH)
-          const bx = INITIAL_BAND_START * ux
-          const by = INITIAL_BAND_START * uy
-          const bw = INITIAL_BAND * ux
-          const bh = INITIAL_BAND * uy
+          const band = initialPlacementBand(next.cw, next.ch)
+          const bandStart = (1 - band) / 2
+          const bx = bandStart * ux
+          const by = bandStart * uy
+          const bw = band * ux
+          const bh = band * uy
           return INITIAL_LAYOUT.map((L, i) => ({
             x: bx + L.xPct * bw,
             y: by + L.yPct * bh,
@@ -133,6 +145,7 @@ function App() {
     if (e.button !== 0) return
     e.currentTarget.setPointerCapture(e.pointerId)
     if (!positions) return
+    playItemClick(soundMuted)
     setPressedIndex(i)
     const p = positions[i]
     dragStateRef.current = {
@@ -171,6 +184,9 @@ function App() {
   }
 
   const finishPointer = (e, i) => {
+    if (e.button === 0) {
+      playItemClick(soundMuted)
+    }
     try {
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId)
@@ -333,8 +349,29 @@ function App() {
     },
   ]
 
+  const handleSoundToggle = () => {
+    setSoundMuted((m) => {
+      if (m) playUnmutePop()
+      return !m
+    })
+  }
+
   return (
     <div className="ticket-app">
+      <button
+        type="button"
+        className="ticket-sound-toggle"
+        onClick={handleSoundToggle}
+        aria-pressed={soundMuted}
+        aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
+      >
+        <span
+          className="material-symbols-rounded ticket-sound-toggle__icon"
+          aria-hidden="true"
+        >
+          {soundMuted ? 'no_sound' : 'volume_up'}
+        </span>
+      </button>
       <div className="ticket-canvas" ref={canvasRef}>
         {Array.from({ length: TICKET_COUNT }, (_, i) => {
           const p = positions?.[i]
@@ -390,7 +427,11 @@ function App() {
             className="ticket-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <Ticket key={selectedIndex} showtime={showtime[selectedIndex]} />
+            <Ticket
+              key={selectedIndex}
+              showtime={showtime[selectedIndex]}
+              soundMuted={soundMuted}
+            />
           </div>
         </div>
       ) : null}
