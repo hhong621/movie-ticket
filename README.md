@@ -1,16 +1,12 @@
-# React + Vite
+# Movie Ticket
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive desk of draggable movie tickets built with **React** and **Vite**. Each ticket shows poster art and opens a modal with fake showtime details. Includes holographic hover effect, uses [@paper-design/shaders-react](https://github.com/paper-design/shaders), optional UI sounds, and a light/dark theme.
 
-Currently, two official plugins are available:
+**Live:** [hhong621.github.io/movie-ticket](https://hhong621.github.io/movie-ticket/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Scripts
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `npm run dev` — local dev server  
+- `npm run build` — production build  
+- `npm run preview` — preview the build  
+- `npm run deploy` — publish to GitHub Pages (`gh-pages` branch)
