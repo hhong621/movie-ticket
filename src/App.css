@@ -10,40 +10,65 @@
 .ticket-app-chrome {
   position: fixed;
   z-index: 200;
-  top: max(0.5rem, env(safe-area-inset-top));
-  right: max(0.5rem, env(safe-area-inset-right));
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
 }
 
+/* Gradients are not interpolatable: hover is a ::before opacity crossfade. */
 .ticket-chrome-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: 0.5rem;
-  color: #fbfaf4;
-  background: #231f20;
-  border: 1px solid rgba(251, 250, 244, 0.35);
-  border-radius: 6px;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  overflow: hidden;
+  color: #ffffff;
+  background: linear-gradient(to bottom, #8a8a8a, #1f1f1f);
+  border: 1px solid #bcbcbc;
+  border-radius: 12px;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transform: scale(1);
   transition:
-    color 400ms ease-out,
-    background-color 400ms ease-out,
-    border-color 400ms ease-out,
-    box-shadow 400ms ease-out,
-    outline-color 400ms ease-out;
+    outline-color 250ms ease-out,
+    transform 120ms ease-out;
+}
+
+.ticket-chrome-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, #adadad, #1f1f1f);
+  opacity: 0;
+  transition: opacity 250ms ease-out;
+  pointer-events: none;
+}
+
+.ticket-chrome-btn:hover::before {
+  opacity: 1;
+}
+
+.ticket-chrome-btn:active {
+  transform: scale(0.96);
 }
 
 .ticket-chrome-btn__icon {
+  position: relative;
+  z-index: 1;
   font-size: 1.5rem;
   line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
   font-variation-settings:
     'FILL' 0,
     'wght' 400,
@@ -51,28 +76,23 @@
     'opsz' 24;
 }
 
-.ticket-chrome-btn:hover {
-  background: #2d2826;
-}
-
 .ticket-chrome-btn:focus-visible {
-  outline: 2px solid #231f20;
+  outline: 2px solid #1f1f1f;
   outline-offset: 2px;
 }
 
 html[data-theme='dark'] .ticket-chrome-btn {
-  color: #f5f4ef;
-  background: #2a2a2a;
-  border-color: rgba(245, 244, 239, 0.28);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  background: linear-gradient(to bottom, #aeaeae, #373737);
+  border-color: #bcbcbc;
 }
 
-html[data-theme='dark'] .ticket-chrome-btn:hover {
-  background: #353535;
+html[data-theme='dark'] .ticket-chrome-btn::before {
+  background: linear-gradient(to bottom, #cacaca, #373737);
 }
 
 html[data-theme='dark'] .ticket-chrome-btn:focus-visible {
-  outline-color: #c4c2bc;
+  outline-color: #cacaca;
 }
 
 .ticket-canvas {
