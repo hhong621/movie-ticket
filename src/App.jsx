@@ -11,7 +11,7 @@ import moonlightPoster from './assets/moonlight-poster.jpg'
 import pastLivesPoster from './assets/past-lives-poster.jpg'
 import portraitPoster from './assets/portrait-poster.jpg'
 import './App.css'
-import { playItemClick, playUnmutePop } from './sound'
+import { playItemClick, playPop, playUnmutePop } from './sound'
 
 const TICKET_COUNT = 9
 const DRAG_THRESHOLD_PX = 5
@@ -54,6 +54,7 @@ function App() {
   const [pressedIndex, setPressedIndex] = useState(null)
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [soundMuted, setSoundMuted] = useState(false)
+  const [isDark, setIsDark] = useState(false)
 
   const canvasRef = useRef(null)
   const layoutSizeRef = useRef(null)
@@ -67,6 +68,14 @@ function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedIndex])
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.dataset.theme = 'dark'
+    } else {
+      delete document.documentElement.dataset.theme
+    }
+  }, [isDark])
 
   const measureCanvas = (canvas) => {
     const scale = parseCanvasScaleFromComputed(canvas)
@@ -356,22 +365,45 @@ function App() {
     })
   }
 
+  const handleThemeToggle = () => {
+    setIsDark((d) => !d)
+  }
+
   return (
     <div className="ticket-app">
-      <button
-        type="button"
-        className="ticket-sound-toggle"
-        onClick={handleSoundToggle}
-        aria-pressed={soundMuted}
-        aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
-      >
-        <span
-          className="material-symbols-rounded ticket-sound-toggle__icon"
-          aria-hidden="true"
+      <div className="ticket-app-chrome">
+        <button
+          type="button"
+          className="ticket-chrome-btn ticket-theme-toggle"
+          onClick={handleThemeToggle}
+          onPointerUp={(e) => {
+            if (e.button === 0) playPop(soundMuted)
+          }}
+          aria-pressed={isDark}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
-          {soundMuted ? 'no_sound' : 'volume_up'}
-        </span>
-      </button>
+          <span
+            className="material-symbols-rounded ticket-chrome-btn__icon"
+            aria-hidden="true"
+          >
+            {isDark ? 'dark_mode' : 'light_mode'}
+          </span>
+        </button>
+        <button
+          type="button"
+          className="ticket-chrome-btn ticket-sound-toggle"
+          onClick={handleSoundToggle}
+          aria-pressed={soundMuted}
+          aria-label={soundMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          <span
+            className="material-symbols-rounded ticket-chrome-btn__icon"
+            aria-hidden="true"
+          >
+            {soundMuted ? 'no_sound' : 'volume_up'}
+          </span>
+        </button>
+      </div>
       <div className="ticket-canvas" ref={canvasRef}>
         {Array.from({ length: TICKET_COUNT }, (_, i) => {
           const p = positions?.[i]

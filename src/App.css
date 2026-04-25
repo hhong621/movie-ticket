@@ -7,11 +7,18 @@
   perspective: 1500px;
 }
 
-.ticket-sound-toggle {
+.ticket-app-chrome {
   position: fixed;
   z-index: 200;
   top: max(0.5rem, env(safe-area-inset-top));
   right: max(0.5rem, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticket-chrome-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -26,9 +33,15 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition:
+    color 400ms ease-out,
+    background-color 400ms ease-out,
+    border-color 400ms ease-out,
+    box-shadow 400ms ease-out,
+    outline-color 400ms ease-out;
 }
 
-.ticket-sound-toggle__icon {
+.ticket-chrome-btn__icon {
   font-size: 1.5rem;
   line-height: 1;
   font-variation-settings:
@@ -38,13 +51,28 @@
     'opsz' 24;
 }
 
-.ticket-sound-toggle:hover {
+.ticket-chrome-btn:hover {
   background: #2d2826;
 }
 
-.ticket-sound-toggle:focus-visible {
+.ticket-chrome-btn:focus-visible {
   outline: 2px solid #231f20;
   outline-offset: 2px;
+}
+
+html[data-theme='dark'] .ticket-chrome-btn {
+  color: #f5f4ef;
+  background: #2a2a2a;
+  border-color: rgba(245, 244, 239, 0.28);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme='dark'] .ticket-chrome-btn:hover {
+  background: #353535;
+}
+
+html[data-theme='dark'] .ticket-chrome-btn:focus-visible {
+  outline-color: #c4c2bc;
 }
 
 .ticket-canvas {

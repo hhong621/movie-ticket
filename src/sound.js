@@ -96,8 +96,7 @@ export function playItemClick(muted) {
   s.play(1600, 5, now, 0.01)
 }
 
-/** Mute control: unmute feedback (pop). Not subject to previous mute. */
-export function playUnmutePop() {
+function playPopInternal() {
   const ctx = getAudioContext()
   if (!ctx) return
   resumeIfNeeded(ctx)
@@ -105,6 +104,17 @@ export function playUnmutePop() {
   if (!s) return
   const now = ctx.currentTime
   s.play(350, 0.4, now, 0.05)
+}
+
+/** Mute control: unmute feedback (pop). Not subject to previous mute. */
+export function playUnmutePop() {
+  playPopInternal()
+}
+
+/** Short UI pop (e.g. theme toggle). No-op if muted. */
+export function playPop(muted) {
+  if (muted) return
+  playPopInternal()
 }
 
 /** Modal ticket flip: short bandpassed noise + airy sweep (paper turn). No-op if muted. */
