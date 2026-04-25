@@ -15,6 +15,8 @@ import { playItemClick, playPaperFlip, playPop, playUnmutePop } from './sound'
 
 const TICKET_COUNT = 9
 const DRAG_THRESHOLD_PX = 5
+/** After opening the modal, block pointer events briefly to absorb the synthetic click (mobile). */
+const MODAL_POINTER_GUARD_MS = 300
 /** Fraction of usable canvas (minus ticket size) where tickets spawn; wider on small screens. */
 const INITIAL_BAND_DESKTOP = 0.5
 const INITIAL_BAND_MOBILE = 0.88
@@ -55,15 +57,44 @@ function App() {
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [soundMuted, setSoundMuted] = useState(false)
   const [isDark, setIsDark] = useState(false)
+  const [modalPointerGuard, setModalPointerGuard] = useState(false)
 
   const canvasRef = useRef(null)
   const layoutSizeRef = useRef(null)
   const dragStateRef = useRef(null)
+  /** Touch-only: swallow the compatibility click that targets the modal ticket (not used for mouse opens). */
+  const swallowModalTicketClickRef = useRef(false)
+  /** Native document click capture handler for ghost click (not confused with React delegation). */
+  const modalGhostClickEatRef = useRef(null)
+  const modalGhostClickFailSafeRef = useRef(0)
+
+  const removeModalGhostClickListener = useCallback(() => {
+    if (modalGhostClickEatRef.current) {
+      document.removeEventListener('click', modalGhostClickEatRef.current, true)
+      modalGhostClickEatRef.current = null
+    }
+    if (modalGhostClickFailSafeRef.current) {
+      clearTimeout(modalGhostClickFailSafeRef.current)
+      modalGhostClickFailSafeRef.current = 0
+    }
+  }, [])
 
   const closeModal = useCallback(() => {
     playPaperFlip(soundMuted)
+    swallowModalTicketClickRef.current = false
+    removeModalGhostClickListener()
+    setModalPointerGuard(false)
     setSelectedIndex(null)
-  }, [soundMuted])
+  }, [soundMuted, removeModalGhostClickListener])
+
+  useEffect(() => {
+    if (selectedIndex === null) return
+    const t = setTimeout(
+      () => setModalPointerGuard(false),
+      MODAL_POINTER_GUARD_MS,
+    )
+    return () => clearTimeout(t)
+  }, [selectedIndex])
 
   useEffect(() => {
     if (selectedIndex === null) return
@@ -73,6 +104,28 @@ function App() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedIndex, closeModal])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const onPointerDown = (e) => {
+      if (e.pointerType !== 'touch') return
+      const t = e.target
+      const el = t instanceof Element ? t : t?.parentElement
+      if (!el?.closest?.('.ticket-canvas-item')) return
+      e.preventDefault()
+    }
+    canvas.addEventListener('pointerdown', onPointerDown, {
+      capture: true,
+      passive: false,
+    })
+    return () => {
+      canvas.removeEventListener('pointerdown', onPointerDown, {
+        capture: true,
+        passive: false,
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (isDark) {
@@ -213,6 +266,36 @@ function App() {
     setPressedIndex(null)
     setDraggingIndex(null)
     if (d && !d.moved) {
+      if (e.pointerType === 'touch') {
+        removeModalGhostClickListener()
+        swallowModalTicketClickRef.current = true
+        setModalPointerGuard(true)
+        e.preventDefault()
+        const eat = (ev) => {
+          if (!swallowModalTicketClickRef.current) {
+            removeModalGhostClickListener()
+            return
+          }
+          if (ev.target?.closest?.('.ticket-modal-scrim')) {
+            swallowModalTicketClickRef.current = false
+            removeModalGhostClickListener()
+            return
+          }
+          if (ev.target?.closest?.('.ticket-modal-content')) {
+            ev.preventDefault()
+            ev.stopImmediatePropagation()
+            swallowModalTicketClickRef.current = false
+            removeModalGhostClickListener()
+          }
+        }
+        modalGhostClickEatRef.current = eat
+        document.addEventListener('click', eat, { capture: true, passive: false })
+        modalGhostClickFailSafeRef.current = setTimeout(() => {
+          modalGhostClickFailSafeRef.current = 0
+          swallowModalTicketClickRef.current = false
+          removeModalGhostClickListener()
+        }, 500)
+      }
       setSelectedIndex(i)
     }
   }
@@ -410,6 +493,10 @@ function App() {
         </button>
       </div>
       <div className="ticket-canvas" ref={canvasRef}>
+        <div className="text-container">
+          <h1>Movie Ticket</h1>
+          <p>Just because a ticket is digital doesn’t mean it should be boring. Read more about this project <a href="https://hhong621.github.io/work/little_bits.html" target='_blank'>here</a>.</p>
+        </div>
         {Array.from({ length: TICKET_COUNT }, (_, i) => {
           const p = positions?.[i]
           if (!p) {
@@ -454,7 +541,13 @@ function App() {
       </div>
 
       {selectedIndex !== null ? (
-        <div className="ticket-modal" role="dialog" aria-modal="true">
+        <div
+          className={`ticket-modal${
+            modalPointerGuard ? ' is-pointer-guard' : ''
+          }`}
+          role="dialog"
+          aria-modal="true"
+        >
           <div
             className="ticket-modal-scrim"
             onClick={closeModal}

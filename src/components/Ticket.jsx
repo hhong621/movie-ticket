@@ -8,6 +8,7 @@ import {
 import { mergeShowtimeIntoSettings } from '../ticketHoloSettings';
 import { playPaperFlip } from '../sound';
 import './TicketHolo.css';
+import './Ticket.css';
 
 function canUsePointerHover() {
     return (
