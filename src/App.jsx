@@ -495,7 +495,7 @@ function App() {
       <div className="ticket-canvas" ref={canvasRef}>
         <div className="text-container">
           <h1>Redesigning the Movie Ticket</h1>
-          <p>Just because a ticket is digital doesn’t mean it should be boring. Read more about this project <a href="https://hhong621.github.io/work/little_bits.html" target='_blank'>here</a>.</p>
+          <p>Just because a ticket is digital doesn’t mean it should be boring. Read more about this project <a href="https://hhong621.github.io/work/little_bits.html#ticket" target='_blank'>here</a>.</p>
         </div>
         {Array.from({ length: TICKET_COUNT }, (_, i) => {
           const p = positions?.[i]
