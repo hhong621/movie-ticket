@@ -56,8 +56,14 @@ function App() {
   const [pressedIndex, setPressedIndex] = useState(null)
   const [hoveredIndex, setHoveredIndex] = useState(null)
   const [soundMuted, setSoundMuted] = useState(false)
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches,
+  )
   const [modalPointerGuard, setModalPointerGuard] = useState(false)
+
+  const themeUserOverrideRef = useRef(false)
 
   const canvasRef = useRef(null)
   const layoutSizeRef = useRef(null)
@@ -134,6 +140,15 @@ function App() {
       delete document.documentElement.dataset.theme
     }
   }, [isDark])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (e) => {
+      if (!themeUserOverrideRef.current) setIsDark(e.matches)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const measureCanvas = (canvas) => {
     const scale = parseCanvasScaleFromComputed(canvas)
@@ -454,6 +469,7 @@ function App() {
   }
 
   const handleThemeToggle = () => {
+    themeUserOverrideRef.current = true
     setIsDark((d) => !d)
   }
 
